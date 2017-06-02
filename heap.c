@@ -1,32 +1,15 @@
 /* Binary Min Heap -- 2017-06-02, jyh */
-#include <stddef.h>
+#include "heap.h"
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 
-
-struct heap {
-	int *array;
-	size_t capacity;
-	size_t size;
-};
-
-enum HeapError {
-	HeapError_Success = 0,
-	HeapError_NoEntries = 1,
-	HeapError_NoMemory = 2
-};
-typedef enum HeapError heap_err;
-
-heap_err heap_init(struct heap **h, size_t capacity);
-heap_err heap_push(struct heap *h, int entry);
-heap_err heap_pop(struct heap *h, int *entry);
 heap_err heap_grow_array(struct heap *h);
 heap_err heap_fixup(struct heap *h);
 heap_err heap_fixdown(struct heap *h);
 void heap_print(struct heap *h);
 void swap(int *i, int *j);
-
 
 #define parent_index(i)			((i-1) / 2)
 #define left_child_index(i)		(i*2 + 1)
@@ -49,10 +32,12 @@ int has_right_child(struct heap *h, size_t i) {
 heap_err heap_init(struct heap **h, size_t capacity) {
 	struct heap *htmp;
 	htmp = (struct heap *) malloc(sizeof(struct heap));
-	if (!htmp) return HeapError_NoMemory;
+	if (htmp == NULL)
+		return HeapError_NoMemory;
 
 	htmp->array = (int *) malloc(sizeof(int) * capacity);
-	if (!htmp->array) return HeapError_NoMemory;
+	if (htmp->array == NULL)
+		return HeapError_NoMemory;
 
 	htmp->capacity = capacity;
 	htmp->size = 0;
@@ -119,7 +104,7 @@ void swap(int* i, int* j) {
 heap_err heap_grow_array(struct heap *h) {
 	size_t new_capacity = h->capacity * 2;
 	int *new = (int *) malloc(sizeof(int) * new_capacity);
-	if (!new)
+	if (new == NULL)
 		return HeapError_NoMemory;
 
 	memcpy(new, h->array, sizeof(int) * h->size);
@@ -140,16 +125,18 @@ int main(int argc, char *argv[]) {
 	heap_err err = HeapError_Success;
 
     struct heap *h;
-	err = heap_init(&h, 3);
-	if (err != HeapError_Success) return err;
+	err = heap_init(&h, 3);		/* intentionally make initial capacity too small */
+	if (err != HeapError_Success)
+		return err;
 
+	/* push a bunch of out of order values */
 	int entries[] = { 4, 25, 2, 56, 1, 6, 5 };
-	for (int i = 0; i < 7; i++) {
+	for (int i = 0; i < 7; i++)
 		err = heap_push(h, entries[i]);
-	}
 
 	heap_print(h);
 
+	/* pop everything, should be sorted order */
 	int entry;
 	while (1) {
 		err = heap_pop(h, &entry);
